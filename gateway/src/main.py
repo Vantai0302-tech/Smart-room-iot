@@ -1,6 +1,9 @@
 
 import json
 import paho.mqtt.client as mqtt
+from telemetry_validator import TelemetryValidator
+
+validator = TelemetryValidator()
 
 BROKER = "127.0.0.1"
 PORT = 1883
@@ -20,19 +23,14 @@ def on_message(client, userdata, msg):
     try:
         data = json.loads(msg.payload.decode("utf-8"))
 
-        if not isinstance(data, dict):
-            print("[ERROR] Invalid telemetry format")
-            return
+        valid, reason = validator.validate(data)
 
-        required = ["device_id", "seq", "temperature_c",
-                    "humidity_pct", "light_lux", "door_open"]
-
-        if any(key not in data for key in required):
-            print("[ERROR] Missing telemetry fields")
+        if not valid:
+            print(f"[REJECTED] {reason}")
             return
 
         print(
-            f"[RECEIVED] Device={data['device_id']} "
+            f"[VALID] Device={data['device_id']} "
             f"Seq={data['seq']} "
             f"Temp={data['temperature_c']} C "
             f"Humidity={data['humidity_pct']}%"
