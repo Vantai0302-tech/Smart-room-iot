@@ -1,0 +1,8 @@
+# Cách 1 (khuyên dùng nếu máy có Docker):  docker compose up
+services:
+  mosquitto:
+    image: eclipse-mosquitto:2
+    ports:
+      - "1883:1883"
+    volumes:
+      - ./mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
