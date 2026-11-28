@@ -1,4 +1,4 @@
-
+import time
 import os
 import json
 import threading
@@ -62,13 +62,29 @@ class CoreIOTClient:
 
         if result.rc != mqtt.MQTT_ERR_SUCCESS:
             raise RuntimeError(f"Publish error: {result.rc}")
+        start = time.monotonic()
 
-        result.wait_for_publish(timeout=10)
+        result.wait_for_publish(timeout=30)
+
+        elapsed = time.monotonic() - start
 
         if not result.is_published():
+            print(
+                f"[CLOUD TIMEOUT] "
+                f"Seq={data.get('seq')} "
+                f"MID={result.mid} "
+                f"Wait={elapsed:.2f}s"
+                )
             raise TimeoutError("Telemetry PUBACK timeout")
+        
+        print(
+            f"[CLOUD ACK] "
+            f"Seq={data.get('seq')} "
+            f"MID={result.mid} "
+            f"Latency={elapsed:.2f}s"
+            )
 
-        print(f"[COREIOT] Published: {payload}")
+        
 
     def close(self):
         self.client.disconnect()
